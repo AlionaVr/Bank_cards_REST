@@ -7,24 +7,29 @@ import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
-import java.util.Random;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CardService {
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
+    private static int counter = 0;
 
-    public void createCard(Long userId, CardCreationRequest request) {
-        User user = userRepository.findByUserId(userId)
+    public void createCard(UUID userId, CardCreationRequest request) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
 
         Card card = Card.builder()
-                .cardNumber(generateCardNumber())
+                .cardNumber(generateUniqueCardNumber())
                 .cardHolderName(request.getCardHolderName())
                 .balance(request.getInitialBalance())
                 .owner(user)
@@ -33,7 +38,7 @@ public class CardService {
         cardRepository.save(card);
     }
 
-    public void blockCard(Long cardId) {
+    public void blockCard(UUID cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new RuntimeException("Card not found with ID: " + cardId));
         if (card.isActive() && card.isNotExpired()) {
@@ -42,7 +47,7 @@ public class CardService {
         }
     }
 
-    public void activateCard(Long cardId) {
+    public void activateCard(UUID cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new RuntimeException("Card not found with ID: " + cardId));
         if (card.isBlocked() && card.isNotExpired()) {
@@ -51,7 +56,7 @@ public class CardService {
         }
     }
 
-    public void deleteCard(Long cardId) {
+    public void deleteCard(UUID cardId) {
         Card card = cardRepository.findById(cardId)
                 .orElseThrow(() -> new RuntimeException("Card not found with ID: " + cardId));
 
@@ -65,16 +70,23 @@ public class CardService {
         return cardRepository.findAll();
     }
 
-    public List<Card> getUserCards(Long userId) {
-        return cardRepository.findByOwner(userId);
+    public Page<Card> getUserCards(UUID userId, CardStatus status, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        if (status == null) {
+            return cardRepository.findByOwner_Id(userId, pageable);
+        } else {
+            return cardRepository.findByOwner_IdAndStatus(userId, status, pageable);
+        }
     }
 
-    private String generateCardNumber(){
-        Random randomNumber = new Random();
-        StringBuilder cardNumber = new StringBuilder();
-        for (int i = 0; i<16; i++){
-            cardNumber.append(randomNumber.nextInt(10));
+    private String generateUniqueCardNumber() {
+
+        Instant now = Instant.now();
+        long milliseconds = now.toEpochMilli();
+
+        synchronized (CardService.class) {
+            counter = (counter + 1) % 10;
+            return String.format("%015d", milliseconds) + counter;
         }
-        return cardNumber.toString();
     }
 }

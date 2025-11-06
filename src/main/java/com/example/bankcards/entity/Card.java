@@ -1,10 +1,14 @@
 package com.example.bankcards.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "cards")
@@ -14,8 +18,8 @@ import java.time.LocalDate;
 @Builder
 public class Card {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
 
     @Column(name = "card_number", unique = true, nullable = false, length = 16)
     private String cardNumber;
@@ -23,6 +27,7 @@ public class Card {
     @Column(nullable = false)
     private String cardHolderName;
 
+    @Column(nullable = false)
     private BigDecimal balance;
 
     @ManyToOne(fetch = FetchType.LAZY)
