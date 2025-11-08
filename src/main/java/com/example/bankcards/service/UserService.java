@@ -57,17 +57,6 @@ public class UserService {
         return userRepository.findAll(pageable).map(this::convertUserToDto);
     }
 
-    private UserDto convertUserToDto(User user) {
-        UserDto dto = new UserDto();
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setRole(user.getRole());
-        dto.setCreatedAt(user.getCreatedAt());
-        return dto;
-    }
-
     public void deleteUser(UUID userId) {
         if (userRepository.findById(userId).isEmpty()) {
             throw new RuntimeException("User not found");
@@ -94,5 +83,16 @@ public class UserService {
         User updatedUser = userRepository.save(user);
 
         return convertUserToDto(updatedUser);
+    }
+
+    private UserDto convertUserToDto(User user) {
+        UserDto dto = new UserDto();
+        dto.setId(user.getId());
+        dto.setEmail(user.getEmail());
+        dto.setFirstName(user.getFirstName());
+        dto.setLastName(user.getLastName());
+        dto.setRole(user.getRole());
+        dto.setCreatedAt(user.getCreatedAt());
+        return dto;
     }
 }

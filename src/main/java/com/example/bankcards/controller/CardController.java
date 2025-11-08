@@ -1,7 +1,7 @@
 package com.example.bankcards.controller;
 
+import com.example.bankcards.dto.CardDto;
 import com.example.bankcards.dto.request.CardCreationRequest;
-import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.service.CardService;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +19,9 @@ public class CardController {
     private final CardService cardService;
 
     @PostMapping
-    public ResponseEntity<Void> createCard(@RequestBody CardCreationRequest request,
-                                           @RequestParam UUID userId) {
-        cardService.createCard(userId, request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<CardDto> createCard(@RequestBody CardCreationRequest request,
+                                              @RequestParam UUID userId) {
+        return ResponseEntity.ok(cardService.createCard(userId, request));
     }
 
     @DeleteMapping
@@ -32,15 +31,13 @@ public class CardController {
     }
 
     @PutMapping("/activate/{cardId}")
-    public ResponseEntity<Void> activateCard(@PathVariable UUID cardId) {
-        cardService.activateCard(cardId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<CardDto> activateCard(@PathVariable UUID cardId) {
+        return ResponseEntity.ok(cardService.activateCard(cardId));
     }
 
     @PutMapping("/block/{cardId}")
-    public ResponseEntity<Void> blockCard(@PathVariable UUID cardId) {
-        cardService.blockCard(cardId);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<CardDto> blockCard(@PathVariable UUID cardId) {
+        return ResponseEntity.ok(cardService.blockCard(cardId));
     }
 
     @GetMapping("/user/{userId}")
@@ -48,14 +45,14 @@ public class CardController {
                                           @RequestParam(defaultValue = "0") int page,
                                           @RequestParam(defaultValue = "10") int size,
                                           @RequestParam(required = false) CardStatus status) {
-        Page<Card> cardsPage = cardService.getUserCards(userId, status, page, size);
-        return ResponseEntity.ok(cardsPage);
+        Page<CardDto> dtoPage = cardService.getUserCards(userId, status, page, size);
+        return ResponseEntity.ok(dtoPage);
     }
 
     @GetMapping("/all")
-    public ResponseEntity<?> getAllCards() {
-        List<Card> cards = cardService.getAllCards();
-        return ResponseEntity.ok(cards);
+    public ResponseEntity<List<CardDto>> getAllCards() {
+        List<CardDto> listDto = cardService.getAllCards();
+        return ResponseEntity.ok(listDto);
     }
 
 }

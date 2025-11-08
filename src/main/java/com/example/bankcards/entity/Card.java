@@ -1,21 +1,21 @@
 package com.example.bankcards.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
-@Table(name = "cards")
-@Data
+@Table(name = "cards", indexes = {
+        @Index(name = "idx_card_owner", columnList = "user_id"),
+        @Index(name = "idx_card_status", columnList = "status")})
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Getter
+@Setter
 public class Card {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -24,7 +24,7 @@ public class Card {
     @Column(name = "card_number", unique = true, nullable = false, length = 16)
     private String cardNumber;
 
-    @Column(nullable = false)
+    @Column(name = "card_holder_name", nullable = false)
     private String cardHolderName;
 
     @Column(nullable = false)
@@ -46,11 +46,13 @@ public class Card {
     public boolean isActive() {
         return (status == CardStatus.ACTIVE);
     }
+
     public boolean isBlocked() {
         return (status == CardStatus.BLOCKED);
     }
-    public boolean isNotExpired() {
-        return (status != CardStatus.EXPIRED);
+
+    public boolean isExpired() {
+        return (status == CardStatus.EXPIRED);
     }
 
     @PrePersist
@@ -58,5 +60,12 @@ public class Card {
         createdDate = LocalDate.now();
         expiryDate = createdDate.plusYears(4);
         status = CardStatus.ACTIVE;
+    }
+
+    @PostLoad
+    protected void checkExpiration() {
+        if (isExpired() && status != CardStatus.EXPIRED) {
+            status = CardStatus.EXPIRED;
+        }
     }
 }
