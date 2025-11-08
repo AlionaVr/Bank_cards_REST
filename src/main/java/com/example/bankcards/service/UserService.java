@@ -2,6 +2,7 @@ package com.example.bankcards.service;
 
 import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.dto.request.UserRegistrationRequest;
+import com.example.bankcards.dto.request.UserUpdateRequest;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -72,5 +73,26 @@ public class UserService {
             throw new RuntimeException("User not found");
         }
         userRepository.deleteById(userId);
+    }
+
+    public UserDto updateUser(UUID userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (request.getEmail() != null) {
+            user.setEmail(request.getEmail().trim());
+        }
+        if (request.getFirstName() != null) {
+            user.setFirstName(request.getFirstName().trim());
+        }
+        if (request.getLastName() != null) {
+            user.setLastName(request.getLastName().trim());
+        }
+        if (request.getRole() != null) {
+            user.setRole(request.getRole());
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        return convertUserToDto(updatedUser);
     }
 }

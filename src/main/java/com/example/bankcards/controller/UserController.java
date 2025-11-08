@@ -2,6 +2,7 @@ package com.example.bankcards.controller;
 
 import com.example.bankcards.dto.UserDto;
 import com.example.bankcards.dto.request.UserRegistrationRequest;
+import com.example.bankcards.dto.request.UserUpdateRequest;
 import com.example.bankcards.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,22 +22,19 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<UserDto> registerUser(
             @Valid @RequestBody UserRegistrationRequest request) {
-        UserDto dto = userService.registerUser(request);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userService.registerUser(request));
     }
 
     @GetMapping("/login/{login}")
     public ResponseEntity<UserDto> getUserByLogin(@Valid @PathVariable String login) {
-        UserDto dto = userService.getUserByLogin(login);
-        return ResponseEntity.ok(dto);
+        return ResponseEntity.ok(userService.getUserByLogin(login));
     }
 
     @GetMapping
     public ResponseEntity<Page<UserDto>> getAllUsers(@RequestParam(defaultValue = "0") int page,
                                                      @RequestParam(defaultValue = "20") int size,
                                                      @RequestParam(defaultValue = "createdAt") String sortBy) {
-        Page<UserDto> users = userService.getAllUsers(page, size, sortBy);
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userService.getAllUsers(page, size, sortBy));
     }
 
     @DeleteMapping
@@ -44,5 +42,10 @@ public class UserController {
         userService.deleteUser(userId);
         return ResponseEntity.ok().build();
     }
-    //TODO update user
+
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDto> updateUser(@PathVariable UUID userId,
+                                              @Valid @RequestBody UserUpdateRequest request) {
+        return ResponseEntity.ok(userService.updateUser(userId, request));
+    }
 }
