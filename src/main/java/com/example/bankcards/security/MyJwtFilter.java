@@ -84,6 +84,9 @@ public class MyJwtFilter extends OncePerRequestFilter {
     private boolean isPublicEndpoint(String path) {
         return path.equals("/api/login") ||
                 path.equals("/api/logout") ||
-                path.equals("/api/register");
+                path.equals("/api/register") ||
+                path.equals("/v3/api-docs/**") ||
+                path.equals("/swagger-ui/**") ||
+                path.equals("/swagger-ui.html");
     }
 }
