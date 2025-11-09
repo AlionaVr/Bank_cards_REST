@@ -1,7 +1,6 @@
 package com.example.bankcards.service;
 
 import com.example.bankcards.dto.UserDto;
-import com.example.bankcards.dto.request.UserRegistrationRequest;
 import com.example.bankcards.dto.request.UserUpdateRequest;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.UserAlreadyExistsException;
@@ -31,35 +30,11 @@ public class UserService {
     private static final List<String> ALLOWED_SORT_FIELDS =
             List.of("createdAt", "email", "firstName", "lastName", "login");
 
-    @Transactional
-    public UserDto registerUser(UserRegistrationRequest request) {
-        log.info("Registering user with login: {}", request.getLogin());
-
-        if (userRepository.existsByLogin(request.getLogin())) {
-            throw new RuntimeException("User with login: " + request.getLogin() + " already exists");
-        }
-
-        String hashedPassword = encoder.encode(request.getPassword());
-
-        User user = User.builder()
-                .login(request.getLogin())
-                .passwordHash(hashedPassword)
-                .email(request.getEmail())
-                .firstName(request.getFirstName())
-                .lastName(request.getLastName())
-                .build();
-
-        User savedUser = userRepository.save(user);
-        log.info("User registered with ID: {}", savedUser.getId());
-
-        return convertUserToDto(savedUser);
-    }
-
     @Transactional(readOnly = true)
     public UserDto getUserById(UUID userId) {
         log.info("Getting user with ID: {}", userId);
         User user = findUserById(userId);
-        return convertUserToDto(user);
+        return new UserDto(user);
     }
 
     @Transactional(readOnly = true)
@@ -72,7 +47,7 @@ public class UserService {
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortBy).descending());
 
-        return userRepository.findAll(pageable).map(this::convertUserToDto);
+        return userRepository.findAll(pageable).map(UserDto::new);
     }
 
     @Transactional
@@ -117,21 +92,11 @@ public class UserService {
         User updatedUser = userRepository.save(user);
         log.info("User updated successfully: {}", userId);
 
-        return convertUserToDto(updatedUser);
+        return new UserDto(updatedUser);
     }
 
     private User findUserById(UUID userId) {
         return userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException(userId));
     }
 
-    private UserDto convertUserToDto(User user) {
-        UserDto dto = new UserDto();
-        dto.setId(user.getId());
-        dto.setEmail(user.getEmail());
-        dto.setFirstName(user.getFirstName());
-        dto.setLastName(user.getLastName());
-        dto.setRole(user.getRole());
-        dto.setCreatedAt(user.getCreatedAt());
-        return dto;
-    }
 }

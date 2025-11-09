@@ -1,5 +1,6 @@
 package com.example.bankcards.dto;
 
+import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.UserRole;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
@@ -18,4 +19,14 @@ public class UserDto {
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime createdAt;
+
+    public UserDto(User user) {
+        this.id = user.getId();
+        this.login = user.getLogin();
+        this.email = user.getEmail();
+        this.firstName = user.getFirstName();
+        this.lastName = user.getLastName();
+        this.role = user.getRole();
+        this.createdAt = user.getCreatedAt();
+    }
 }

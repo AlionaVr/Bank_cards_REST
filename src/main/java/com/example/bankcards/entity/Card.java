@@ -28,6 +28,7 @@ public class Card {
     private String cardHolderName;
 
     @Column(nullable = false)
+    @Builder.Default
     private BigDecimal balance = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -41,7 +42,8 @@ public class Card {
     private LocalDate expiryDate;
 
     @Enumerated(EnumType.STRING)
-    private CardStatus status;
+    @Builder.Default
+    private CardStatus status = CardStatus.ACTIVE;
 
     public boolean isActive() {
         return (status == CardStatus.ACTIVE);

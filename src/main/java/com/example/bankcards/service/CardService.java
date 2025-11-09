@@ -5,6 +5,8 @@ import com.example.bankcards.dto.request.CardCreationRequest;
 import com.example.bankcards.entity.Card;
 import com.example.bankcards.entity.CardStatus;
 import com.example.bankcards.entity.User;
+import com.example.bankcards.entity.UserRole;
+import com.example.bankcards.exception.AccessDeniedException;
 import com.example.bankcards.exception.CardNotFoundException;
 import com.example.bankcards.exception.CardOperationException;
 import com.example.bankcards.exception.UserNotFoundException;
@@ -16,6 +18,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -113,6 +117,17 @@ public class CardService {
 
     @Transactional(readOnly = true)
     public Page<CardDto> getUserCards(UUID userId, CardStatus status, int page, int size) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String login = auth.getName();
+
+        User currentUser = userRepository.findByLogin(login)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + login));
+
+        boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
+        if (!isAdmin && !currentUser.getId().equals(userId)) {
+            throw new AccessDeniedException("You can only view your own cards");
+        }
+
         Pageable pageable = PageRequest.of(page, size);
 
         Page<Card> cards = (status == null)

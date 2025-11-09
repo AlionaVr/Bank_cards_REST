@@ -1,0 +1,89 @@
+package com.example.bankcards.security;
+
+import io.jsonwebtoken.JwtException;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class MyJwtFilter extends OncePerRequestFilter {
+    private final JwtService jwt;
+    @Value("${spring.security.jwt.header}")
+    private String header;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
+            throws ServletException, IOException {
+
+        String path = request.getServletPath();
+        log.debug("Processing request to {}", path);
+        if (isPublicEndpoint(path)) {
+            log.debug("Public endpoint '{}', skipping authentication", path);
+            chain.doFilter(request, response);
+            return;
+        }
+
+        String token = resolveToken(request);
+        if (token != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+            try {
+                var claims = jwt.parse(token).getBody();
+                String username = claims.getSubject();
+                @SuppressWarnings("unchecked")
+                var roles = (List<String>) claims.getOrDefault("roles", List.of());
+
+                var auth = new UsernamePasswordAuthenticationToken(
+                        username, null,
+                        roles.stream()
+                                .map(r -> new SimpleGrantedAuthority("ROLE_" + r))
+                                .toList());
+
+                auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                SecurityContextHolder.getContext().setAuthentication(auth);
+                log.info("User '{}' authenticated successfully", username);
+            } catch (JwtException | IllegalArgumentException e) {
+                log.warn("Invalid or expired JWT token: {}", e.getMessage());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"code\":\"UNAUTHORIZED\",\"message\":\"Invalid or expired token\"}");
+                return;
+            }
+        }
+        chain.doFilter(request, response);
+    }
+
+    private String resolveToken(HttpServletRequest req) {
+        String token = req.getHeader(header);// "auth-token"
+        if (StringUtils.hasText(token))
+            return token;
+
+        String authHeader = req.getHeader(HttpHeaders.AUTHORIZATION);
+        if (StringUtils.hasText(authHeader) && authHeader.startsWith("Bearer ")) {
+            String bearerToken = authHeader.substring(7);
+            return StringUtils.hasText(bearerToken) ? bearerToken : null;
+        }
+        return null;
+    }
+
+    private boolean isPublicEndpoint(String path) {
+        return path.equals("/api/login") ||
+                path.equals("/api/logout") ||
+                path.equals("/api/register");
+    }
+}

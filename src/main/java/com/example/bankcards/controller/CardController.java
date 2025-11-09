@@ -7,35 +7,40 @@ import com.example.bankcards.service.CardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/cards")
+@RequestMapping("api/cards")
 @RequiredArgsConstructor
 public class CardController {
     private final CardService cardService;
 
     @PostMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CardDto> createCard(@RequestBody CardCreationRequest request,
                                               @RequestParam UUID userId) {
         return ResponseEntity.ok(cardService.createCard(userId, request));
     }
 
     @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteCard(@RequestParam UUID cardId) {
         cardService.deleteCard(cardId);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/activate/{cardId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CardDto> activateCard(@PathVariable UUID cardId) {
         return ResponseEntity.ok(cardService.activateCard(cardId));
     }
 
     @PutMapping("/block/{cardId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CardDto> blockCard(@PathVariable UUID cardId) {
         return ResponseEntity.ok(cardService.blockCard(cardId));
     }
@@ -50,6 +55,7 @@ public class CardController {
     }
 
     @GetMapping("/all")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<CardDto>> getAllCards() {
         List<CardDto> listDto = cardService.getAllCards();
         return ResponseEntity.ok(listDto);
