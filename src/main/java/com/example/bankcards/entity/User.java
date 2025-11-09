@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Entity
-@Table(name = "users")
+@Table(name = "users", indexes = {
+        @Index(name = "idx_user_email", columnList = "email")})
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
@@ -19,7 +20,7 @@ public class User {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true, nullable = false, length = 50)
     private String login;
 
     @Column(name = "password_hash", nullable = false)
@@ -28,10 +29,10 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
-    @Column(name = "first_name", nullable = false)
+    @Column(name = "first_name", nullable = false, length = 50)
     private String firstName;
 
-    @Column(name = "last_name", nullable = false)
+    @Column(name = "last_name", nullable = false, length = 50)
     private String lastName;
 
     @Enumerated(EnumType.STRING)

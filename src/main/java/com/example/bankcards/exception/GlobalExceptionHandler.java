@@ -23,6 +23,16 @@ public class GlobalExceptionHandler {
 
     }
 
+    @ExceptionHandler(UserAlreadyExistsException.class)
+    public ResponseEntity<ErrorResponse> handleUserAlreadyExists(UserAlreadyExistsException ex) {
+        log.error("User already exists: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .code("USER_ALREADY_EXISTS")
+                        .message(ex.getMessage())
+                        .build());
+    }
+
     @ExceptionHandler(CardNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleCardNotFound(CardNotFoundException ex) {
         log.error("Card not found: {}", ex.getMessage());
@@ -52,6 +62,7 @@ public class GlobalExceptionHandler {
                         .message("Request validation failed")
                         .build());
     }
+
 
 }
 

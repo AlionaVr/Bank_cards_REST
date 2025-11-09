@@ -25,9 +25,9 @@ public class UserController {
         return ResponseEntity.ok(userService.registerUser(request));
     }
 
-    @GetMapping("/login/{login}")
-    public ResponseEntity<UserDto> getUserByLogin(@Valid @PathVariable String login) {
-        return ResponseEntity.ok(userService.getUserByLogin(login));
+    @GetMapping("/{id}")
+    public ResponseEntity<UserDto> getUserById(@PathVariable UUID id) {
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @GetMapping
@@ -37,15 +37,15 @@ public class UserController {
         return ResponseEntity.ok(userService.getAllUsers(page, size, sortBy));
     }
 
-    @DeleteMapping
-    public ResponseEntity<Void> deleteUser(@RequestParam UUID userId) {
-        userService.deleteUser(userId);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID id) {
+        userService.deleteUser(id);
         return ResponseEntity.ok().build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserDto> updateUser(@PathVariable UUID userId,
+    public ResponseEntity<UserDto> updateUser(@PathVariable UUID id,
                                               @Valid @RequestBody UserUpdateRequest request) {
-        return ResponseEntity.ok(userService.updateUser(userId, request));
+        return ResponseEntity.ok(userService.updateUser(id, request));
     }
 }
