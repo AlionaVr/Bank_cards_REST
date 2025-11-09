@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 002-create-cards-table
+      author: alionaVr
+      changes:
+        - sqlFile:
+            path: db/migration/sql/create-cards-table.sql
+            relativeToChangelogFile: false
