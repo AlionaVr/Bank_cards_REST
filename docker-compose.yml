@@ -1,9 +1,49 @@
-# 
-# docker-compose.yml — определяет сервисы для разработки и тестирования.
+version: "3.8"
 
-Что нужно сделать:
-  - Настроить сервисы для:
-      - PostgreSQL (или MySQL) с начальной базой.
-      - Приложения Spring Boot (если нужно).
-  - Открыть нужные порты (например, 5432, 8080).
-  - Настроить volume для хранения данных БД.
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: bankcards-postgres
+    environment:
+      POSTGRES_DB: bankcards
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - bankcards-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d bankcards" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: bankcards-app
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/bankcards
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: password
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
+      SPRING_SECURITY_JWT_SECRET: vdeNR3G2uMdCQD3vY3O1Z7vjBoBN4Uv3UwGM+2P3kZQ=
+      SPRING_SECURITY_JWT_ISSUER: bankcards-api
+      SPRING_SECURITY_JWT_ACCESS_TTL_MINUTES: 60
+
+      PAN_ENCRYPTION_KEY_BASE64: vV8x6jqCzYB6cR3mxfM2n8lmCkX7F3j8hFJt0n37TqQ=
+
+      SPRING_PROFILES_ACTIVE: dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  bankcards-db-data:
+    driver: local
