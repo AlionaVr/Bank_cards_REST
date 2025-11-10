@@ -1,5 +1,6 @@
 package com.example.bankcards.entity;
 
+import com.example.bankcards.util.CardNumberAttributeConverter;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -21,8 +22,12 @@ public class Card {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "card_number", unique = true, nullable = false, length = 16)
-    private String cardNumber;
+    @Convert(converter = CardNumberAttributeConverter.class)
+    @Column(name = "card_number_encrypted", unique = true, nullable = false, length = 512)
+    private String cardNumberEncrypted;
+
+    @Column(name = "last4", length = 4, nullable = false)
+    private String last4;
 
     @Column(name = "card_holder_name", nullable = false)
     private String cardHolderName;

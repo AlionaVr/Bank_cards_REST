@@ -45,8 +45,11 @@ public class CardService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException(userId));
 
+        String plainCardNumber = generateUniqueCardNumber();
+
         Card card = Card.builder()
-                .cardNumber(generateUniqueCardNumber())
+                .cardNumberEncrypted(plainCardNumber)
+                .last4(extractLast4(plainCardNumber))
                 .cardHolderName(request.getCardHolderName())
                 .balance(request.getInitialBalance())
                 .owner(user)
@@ -185,6 +188,12 @@ public class CardService {
 
     }
 
+    private String extractLast4(String cardNumber) {
+        if (cardNumber == null) return "";
+        String digitsOnly = cardNumber.replaceAll("\\s+", "");
+        return digitsOnly.length() <= 4 ? digitsOnly : digitsOnly.substring(digitsOnly.length() - 4);
+    }
+
     private Card findCardById(UUID cardId) {
         return cardRepository.findById(cardId)
                 .orElseThrow(() -> new CardNotFoundException(cardId));
@@ -201,7 +210,7 @@ public class CardService {
         return CardDto.builder()
                 .id(card.getId())
                 .cardHolderName(card.getCardHolderName())
-                .maskedCardNumber(cardNumberMasker.maskCardNumber(card.getCardNumber()))
+                .maskedCardNumber(cardNumberMasker.maskCardNumber(card.getLast4()))
                 .ownerId(card.getOwner().getId())
                 .createdDate(card.getCreatedDate())
                 .expiryDate(card.getExpiryDate())
