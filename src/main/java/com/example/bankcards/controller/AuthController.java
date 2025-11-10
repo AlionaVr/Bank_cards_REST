@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor
-@Tag(name = "Authentication", description = "Registration and inter of users")
+@Tag(name = "Authentication", description = "Registration and login")
 @Slf4j
 public class AuthController {
 

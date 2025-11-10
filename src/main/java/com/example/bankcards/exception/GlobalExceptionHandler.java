@@ -4,6 +4,7 @@ import com.example.bankcards.dto.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -48,6 +49,12 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("ACCESS_DENIED", ex.getMessage()));
     }
 
+    @ExceptionHandler(AuthorizationDeniedException.class)
+    public ResponseEntity<ErrorResponse> handleSpringSecurityAccessDenied(org.springframework.security.authorization.AuthorizationDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("ACCESS_DENIED", ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> handleMethodArgumentNotValid(MethodArgumentNotValidException ex) {
         log.error("Validation error: {}", ex.getMessage());
@@ -68,4 +75,5 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse("INTERNAL_SERVER_ERROR", e.getMessage()));
     }
+
 }

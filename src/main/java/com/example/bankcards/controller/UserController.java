@@ -83,7 +83,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
             summary = "Update user information",

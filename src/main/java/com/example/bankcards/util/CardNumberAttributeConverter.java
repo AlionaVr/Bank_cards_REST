@@ -3,7 +3,6 @@ package com.example.bankcards.util;
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
@@ -22,9 +21,6 @@ public class CardNumberAttributeConverter implements AttributeConverter<String, 
 
     private final SecretKey secretKey;
     private final SecureRandom secureRandom = new SecureRandom();
-
-    @Value("${PAN_ENCRYPTION_KEY_BASE64}")
-    private String keyB64;
 
     public CardNumberAttributeConverter() {
 

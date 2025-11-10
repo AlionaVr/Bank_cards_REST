@@ -47,11 +47,16 @@ public class CardService {
 
         String plainCardNumber = generateUniqueCardNumber();
 
+        BigDecimal initialBalance = request.getInitialBalance();
+        if (initialBalance == null) {
+            initialBalance = BigDecimal.ZERO;
+        }
+
         Card card = Card.builder()
                 .cardNumberEncrypted(plainCardNumber)
                 .last4(extractLast4(plainCardNumber))
                 .cardHolderName(request.getCardHolderName())
-                .balance(request.getInitialBalance())
+                .balance(initialBalance)
                 .owner(user)
                 .build();
 
