@@ -1,0 +1,8 @@
+databaseChangeLog:
+  - changeSet:
+      id: 004-create-transfers-table
+      author: alionaVr
+      changes:
+        - sqlFile:
+            path: db/migration/sql/create-transfers-table.sql
+            relativeToChangelogFile: false

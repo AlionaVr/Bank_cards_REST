@@ -1,5 +1,6 @@
 package com.example.bankcards.dto.request;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
@@ -9,6 +10,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 
 @Data
+@Schema(description = "Card creation request")
 public class CardCreationRequest {
 
     @NotBlank(message = "Card holder name is required")

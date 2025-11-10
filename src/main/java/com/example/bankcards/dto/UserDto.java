@@ -3,12 +3,14 @@ package com.example.bankcards.dto;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.entity.UserRole;
 import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@Schema(description = "User DTO")
 public class UserDto {
     private UUID id;
     private String login;

@@ -79,4 +79,21 @@ public class Card {
             status = CardStatus.EXPIRED;
         }
     }
+
+    public void addBalance(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative");
+        }
+        this.balance = this.balance.add(amount);
+    }
+
+    public void subtractBalance(BigDecimal amount) {
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new IllegalArgumentException("Amount cannot be negative");
+        }
+        if (this.balance.compareTo(amount) < 0) {
+            throw new IllegalArgumentException("Insufficient funds");
+        }
+        this.balance = this.balance.subtract(amount);
+    }
 }
