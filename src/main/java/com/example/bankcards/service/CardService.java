@@ -86,7 +86,7 @@ public class CardService {
     public CardDto activateCard(UUID cardId) {
         Card card = findCardById(cardId);
 
-        if (card.isBlocked() || card.isExpired()) {
+        if (!card.isBlocked() || card.isExpired()) {
             throw new CardOperationException("Cannot activate card. Card must be BLOCKED and not expired. Current status: " + card.getStatus());
         }
         card.setStatus(CardStatus.ACTIVE);
@@ -220,6 +220,7 @@ public class CardService {
                 .createdDate(card.getCreatedDate())
                 .expiryDate(card.getExpiryDate())
                 .status(card.getStatus())
+                .blockRequested(card.isBlockRequested())
                 .build();
     }
 }

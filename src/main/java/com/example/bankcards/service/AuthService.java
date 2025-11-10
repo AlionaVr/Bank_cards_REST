@@ -2,6 +2,7 @@ package com.example.bankcards.service;
 
 import com.example.bankcards.dto.LoginResponse;
 import com.example.bankcards.dto.UserDto;
+import com.example.bankcards.dto.request.LoginRequest;
 import com.example.bankcards.dto.request.UserRegistrationRequest;
 import com.example.bankcards.entity.User;
 import com.example.bankcards.exception.UserNotFoundException;
@@ -24,7 +25,10 @@ public class AuthService {
     private final JwtService jwt;
     private final BCryptPasswordEncoder encoder;
 
-    public LoginResponse login(String login, String rawPassword) {
+    public LoginResponse login(LoginRequest request) {
+        String login = request.getLogin();
+        String rawPassword = request.getPassword();
+
         log.info("User '{}' is logging in", login);
         User user = userRepository.findByLogin(login)
                 .orElseThrow(() -> new UserNotFoundException("User not found"));

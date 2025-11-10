@@ -4,12 +4,14 @@ import com.example.bankcards.entity.Transfer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Data
+@NoArgsConstructor
 @Schema(description = "Transfer information")
 public class TransferDto {
     private UUID id;

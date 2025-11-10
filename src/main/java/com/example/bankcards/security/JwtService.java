@@ -78,8 +78,4 @@ public class JwtService {
             throw e;
         }
     }
-
-    public String getUsername(String token) {
-        return parse(token).getBody().getSubject();
-    }
 }

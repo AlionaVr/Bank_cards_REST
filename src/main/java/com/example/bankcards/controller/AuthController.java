@@ -38,7 +38,7 @@ public class AuthController {
             })
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         log.info("Attempt login for user '{}'", request.getLogin());
-        return ResponseEntity.ok(authService.login(request.getLogin(), request.getPassword()));
+        return ResponseEntity.ok(authService.login(request));
     }
 
     @PostMapping("/logout")
