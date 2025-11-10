@@ -67,6 +67,7 @@ public class CardService {
             throw new CardOperationException("Cannot block card. Card must be ACTIVE and not expired. Current status: " + card.getStatus());
         }
         card.setStatus(CardStatus.BLOCKED);
+        card.setBlockRequested(false);
         cardRepository.save(card);
         log.info("Card blocked with ID: {}", card.getId());
 
@@ -100,11 +101,6 @@ public class CardService {
         log.info("Card deleted with ID: {}", cardId);
     }
 
-    private Card findCardById(UUID cardId) {
-        return cardRepository.findById(cardId)
-                .orElseThrow(() -> new CardNotFoundException(cardId));
-    }
-
     @Transactional(readOnly = true)
     public List<CardDto> getAllCards() {
         log.info("Getting all cards");
@@ -116,12 +112,8 @@ public class CardService {
     }
 
     @Transactional(readOnly = true)
-    public Page<CardDto> getUserCards(UUID userId, CardStatus status, int page, int size) {
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        String login = auth.getName();
-
-        User currentUser = userRepository.findByLogin(login)
-                .orElseThrow(() -> new UserNotFoundException("User not found: " + login));
+    public Page<CardDto> getUserCards(UUID userId, CardStatus status, String search, int page, int size) {
+        User currentUser = getCurrentUser();
 
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
         if (!isAdmin && !currentUser.getId().equals(userId)) {
@@ -130,11 +122,57 @@ public class CardService {
 
         Pageable pageable = PageRequest.of(page, size);
 
-        Page<Card> cards = (status == null)
-                ? cardRepository.findByOwner_Id(userId, pageable)
-                : cardRepository.findByOwner_IdAndStatus(userId, status, pageable);
+        boolean hasSearch = search != null && !search.isBlank();
+        Page<Card> cards;
+        if (!hasSearch) {
+            cards = (status == null)
+                    ? cardRepository.findByOwner_Id(userId, pageable)
+                    : cardRepository.findByOwner_IdAndStatus(userId, status, pageable);
+        } else {
+            cards = (status == null)
+                    ? cardRepository.findByOwner_IdAndCardHolderNameContainingIgnoreCase(
+                    userId, search, pageable)
+                    : cardRepository.findByOwner_IdAndStatusAndCardHolderNameContainingIgnoreCase(
+                    userId, status, search, pageable);
 
+        }
         return cards.map(this::convertCardToDto);
+    }
+
+    @Transactional
+    public CardDto requestBlockCard(UUID cardId) {
+        log.info("User requesting to block card with ID: {}", cardId);
+        Card card = findCardById(cardId);
+        User currentUser = getCurrentUser();
+
+        if (!card.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You can block only your own cards");
+        }
+
+        if (card.isBlocked() || card.isExpired()) {
+            throw new CardOperationException("Cannot block card. Card must be ACTIVE and not expired. Current status: " + card.getStatus());
+        }
+        if (card.isBlockRequested()) {
+            throw new CardOperationException("Block for this card is already requested");
+        }
+
+        card.setBlockRequested(true);
+        cardRepository.save(card);
+
+        return convertCardToDto(card);
+    }
+
+    @Transactional(readOnly = true)
+    public BigDecimal getBalance(UUID cardId) {
+        log.info("Getting balance for card with ID: {}", cardId);
+
+        Card card = findCardById(cardId);
+        User currentUser = getCurrentUser();
+
+        if (!card.getOwner().getId().equals(currentUser.getId())) {
+            throw new AccessDeniedException("You can only view balance of your own cards");
+        }
+        return card.getBalance();
     }
 
     private String generateUniqueCardNumber() {
@@ -145,6 +183,18 @@ public class CardService {
         int count = counter.updateAndGet(i -> (i + 1) % 10);
         return String.format("%015d", milliseconds) + count;
 
+    }
+
+    private Card findCardById(UUID cardId) {
+        return cardRepository.findById(cardId)
+                .orElseThrow(() -> new CardNotFoundException(cardId));
+    }
+
+    private User getCurrentUser() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String login = auth.getName();
+        return userRepository.findByLogin(login)
+                .orElseThrow(() -> new UserNotFoundException("User not found: " + login));
     }
 
     private CardDto convertCardToDto(Card card) {

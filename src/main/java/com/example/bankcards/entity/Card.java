@@ -45,6 +45,10 @@ public class Card {
     @Builder.Default
     private CardStatus status = CardStatus.ACTIVE;
 
+    @Column(name = "block_requested", nullable = false)
+    @Builder.Default
+    private boolean blockRequested = false;
+
     public boolean isActive() {
         return (status == CardStatus.ACTIVE);
     }

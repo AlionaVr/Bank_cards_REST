@@ -19,4 +19,8 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
 
     Page<Card> findByOwner_IdAndStatus(UUID userId, CardStatus status, Pageable pageable);
 
+    Page<Card> findByOwner_IdAndCardHolderNameContainingIgnoreCase(UUID userId, String search, Pageable pageable);
+
+    Page<Card> findByOwner_IdAndStatusAndCardHolderNameContainingIgnoreCase(UUID userId, CardStatus status, String search, Pageable pageable);
+
 }

@@ -17,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
@@ -103,9 +104,11 @@ public class CardController {
     }
 
     @GetMapping("/user/{userId}")
+    @PreAuthorize("hasAnyRole('USER','ADMIN')")
     @Operation(
             summary = "Get cards of a specific user",
-            description = "Retrieves a paginated list of all cards belonging to a specific user. Users can view only their own cards.",
+            description = "Retrieves a paginated list of all cards belonging to a specific user. " +
+                    "Users can view only their own cards. Supports filtering by status and search. ",
             responses = {
                     @ApiResponse(
                             responseCode = "200",
@@ -115,12 +118,14 @@ public class CardController {
                     @ApiResponse(responseCode = "403", description = "Access denied")
             }
     )
-    public ResponseEntity<?> getUserCards(
+    public ResponseEntity<Page<CardDto>> getUserCards(
             @Parameter(description = "User ID") @PathVariable("userId") UUID userId,
             @Parameter(description = "Page number (0..N)") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "Filter by card status") @RequestParam(required = false) CardStatus status) {
-        Page<CardDto> dtoPage = cardService.getUserCards(userId, status, page, size);
+            @Parameter(description = "Filter by card status") @RequestParam(required = false) CardStatus status,
+            @Parameter(description = "Search term (card holder name)") @RequestParam(required = false) String search) {
+
+        Page<CardDto> dtoPage = cardService.getUserCards(userId, status, search, page, size);
         return ResponseEntity.ok(dtoPage);
     }
 
@@ -138,5 +143,45 @@ public class CardController {
     public ResponseEntity<List<CardDto>> getAllCards() {
         List<CardDto> listDto = cardService.getAllCards();
         return ResponseEntity.ok(listDto);
+    }
+
+    @PutMapping("/request-block/{cardId}")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "Request card blocking",
+            description = "User can request to block their own card.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Card blocked successfully",
+                            content = @Content(schema = @Schema(implementation = CardDto.class))
+                    ),
+                    @ApiResponse(responseCode = "404", description = "Card not found"),
+                    @ApiResponse(responseCode = "403", description = "Access denied - not card owner")
+            }
+    )
+    public ResponseEntity<CardDto> requestBlockCard(
+            @Parameter(description = "Card ID") @PathVariable("cardId") UUID cardId) {
+        return ResponseEntity.ok(cardService.requestBlockCard(cardId));
+    }
+
+    @GetMapping("/balance/{cardId}")
+    @PreAuthorize("hasRole('USER')")
+    @Operation(
+            summary = "Get card balance",
+            description = "Retrieves the balance of a specific card. Users can only view their own card balance.",
+            responses = {
+                    @ApiResponse(
+                            responseCode = "200",
+                            description = "Balance retrieved successfully",
+                            content = @Content(schema = @Schema(implementation = BigDecimal.class))
+                    ),
+                    @ApiResponse(responseCode = "404", description = "Card not found"),
+                    @ApiResponse(responseCode = "403", description = "Access denied")
+            }
+    )
+    public ResponseEntity<BigDecimal> getBalance(
+            @Parameter(description = "Card ID") @PathVariable("cardId") UUID cardId) {
+        return ResponseEntity.ok(cardService.getBalance(cardId));
     }
 }

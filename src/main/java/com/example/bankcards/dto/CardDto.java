@@ -29,4 +29,6 @@ public class CardDto {
 
     private CardStatus status;
 
+    private boolean blockRequested;
+
 }
