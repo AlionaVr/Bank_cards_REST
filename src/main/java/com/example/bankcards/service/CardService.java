@@ -72,7 +72,8 @@ public class CardService {
         Card card = findCardById(cardId);
 
         if (!card.isActive() || card.isExpired()) {
-            throw new CardOperationException("Cannot block card. Card must be ACTIVE and not expired. Current status: " + card.getStatus());
+            throw new CardOperationException("Cannot block card. Card must be ACTIVE and not expired. Current status: "
+                    + card.getStatus());
         }
         card.setStatus(CardStatus.BLOCKED);
         card.setBlockRequested(false);
@@ -87,7 +88,8 @@ public class CardService {
         Card card = findCardById(cardId);
 
         if (!card.isBlocked() || card.isExpired()) {
-            throw new CardOperationException("Cannot activate card. Card must be BLOCKED and not expired. Current status: " + card.getStatus());
+            throw new CardOperationException("Cannot activate card. Card must be BLOCKED and not expired. Current status: "
+                    + card.getStatus());
         }
         card.setStatus(CardStatus.ACTIVE);
         cardRepository.save(card);
@@ -158,7 +160,8 @@ public class CardService {
         }
 
         if (card.isBlocked() || card.isExpired()) {
-            throw new CardOperationException("Cannot block card. Card must be ACTIVE and not expired. Current status: " + card.getStatus());
+            throw new CardOperationException("Cannot block card. Card must be ACTIVE and not expired. Current status: "
+                    + card.getStatus());
         }
         if (card.isBlockRequested()) {
             throw new CardOperationException("Block for this card is already requested");

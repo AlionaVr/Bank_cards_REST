@@ -50,7 +50,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<ErrorResponse> handleSpringSecurityAccessDenied(org.springframework.security.authorization.AuthorizationDeniedException ex) {
+    public ResponseEntity<ErrorResponse> handleSpringSecurityAccessDenied(AuthorizationDeniedException ex) {
         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                 .body(new ErrorResponse("ACCESS_DENIED", ex.getMessage()));
     }

@@ -111,7 +111,8 @@ public class TransferService {
         }
 
         if (!fromCard.isActive() || !toCard.isActive()) {
-            throw new CardOperationException(String.format("Card is not active. Status fromCard: %s. Status toCard: %s", fromCard.getStatus(), toCard));
+            throw new CardOperationException(String.format("Card is not active. Status fromCard: %s. Status toCard: %s",
+                    fromCard.getStatus(), toCard));
         }
         if (fromCard.getBalance().compareTo(request.getAmount()) < 0) {
             throw new CardOperationException("Insufficient funds on source card");

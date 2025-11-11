@@ -11,7 +11,9 @@ RUN mvn -B -f pom.xml package -DskipTests
 
 FROM eclipse-temurin:17-jdk-jammy
 WORKDIR /app
+RUN addgroup -S app && adduser -S app -G app
 COPY --from=builder /app/target/*.jar app.jar
+USER app
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","app.jar"]
 
