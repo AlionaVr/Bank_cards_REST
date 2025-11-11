@@ -14,6 +14,7 @@ import com.example.bankcards.repository.CardRepository;
 import com.example.bankcards.repository.TransferRepository;
 import com.example.bankcards.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -27,6 +28,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class TransferService {
 
     private final TransferRepository transferRepository;
@@ -35,6 +37,9 @@ public class TransferService {
 
     @Transactional
     public TransferDto transferBetweenCards(TransferRequest request) {
+        log.info("Transferring money from card with ID: {} to card with ID: {}",
+                request.getFromCardId(), request.getToCardId());
+
         User currentUser = getCurrentUser();
         Card fromCard = findCardById(request.getFromCardId());
         Card toCard = findCardById(request.getToCardId());
@@ -55,11 +60,13 @@ public class TransferService {
                 .build();
 
         transferRepository.save(transfer);
+        log.info("Transfer completed");
         return new TransferDto(transfer);
     }
 
     @Transactional(readOnly = true)
     public Page<TransferDto> getTransferHistory(int page, int size, UUID cardId) {
+        log.info("Getting transfer history for card with ID: {}", cardId);
         User currentUser = getCurrentUser();
         boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
 
@@ -74,12 +81,15 @@ public class TransferService {
             }
 
             transfers = transferRepository.findByCardId(cardId, pageable);
+            log.info("Transfer history for card with ID: {} retrieved", cardId);
         } else {
             if (isAdmin) {
                 transfers = transferRepository.findAll(pageable);
+                log.info("Transfer history for all cards retrieved");
             } else {
                 UUID userId = currentUser.getId();
                 transfers = transferRepository.findByUserId(userId, pageable);
+                log.info("Transfer history for user with ID: {} retrieved", userId);
             }
         }
         return transfers.map(TransferDto::new);
@@ -109,6 +119,7 @@ public class TransferService {
     }
 
     private User getCurrentUser() {
+        log.info("Getting current user");
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String login = auth.getName();
         return userRepository.findByLogin(login)
